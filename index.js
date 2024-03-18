@@ -4,10 +4,8 @@ const cors = require('cors');
 const connectToMongoose = require('./db');
 const routes = require("./routes/index");
 const cookieParser = require('cookie-parser');
-const rateLimit = require("express-rate-limit");
 const http = require("http");
 const socketIO = require("socket.io");
-const User = require('./models/User');
 const { isUserOnline, updateSocketId, getUserNameBySocket } = require('./controllers/auth');
 const { addMessage } = require('./controllers/message');
 
@@ -23,15 +21,8 @@ app.use(cors({
   credentials: true,
 }));
 
-const limiter = rateLimit({
-  windowMs: 60 * 60 * 1000, // 1 hour in milliseconds
-  max: 50, // maximum 1000 requests per windowMs
-  message: "Too many requests from your server, please try again later."
-});
-
 app.use(express.json()); // Middleware to parse JSON request bodies
 app.use(cookieParser());
-app.use(limiter);
 
 app.use('/api/', routes);
 

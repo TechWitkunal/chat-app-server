@@ -40,14 +40,7 @@ const defaultChatWallpaper = "https://firebasestorage.googleapis.com/v0/b/online
 
 exports.register = async (req, res) => {
     try {
-        // check email valid
-        // check existing user exist with same email and username in db or not if yes than return bad res
-        // using bcryptjs to modify password
-        // update profile photo and avatar to firebase and upate in user
-        // create user
-
-        // { console.log(req.body);
-        // return res.json({"Email is valid or not ->":isValidEmail(req.body.email)}); }
+        console.log("register")
         const { name, about, email, password, imageUrl } = req.body;
         // console.log(imageUrl);
 
@@ -129,6 +122,7 @@ exports.register = async (req, res) => {
 
 exports.login = async (req, res) => {
     try {
+        console.log(":LKJH login");
         const { email, password } = req.body;
         // console.log(req.body)
         // Validation
@@ -137,6 +131,8 @@ exports.login = async (req, res) => {
         }
 
         // Check if user exists with the provided email
+        // console.log(email);
+        console.log(await User.find({}))
         const user = await User.findOne({ email: email });
         if (!user) {
             throw new ApiError(404, "Please provide correct credentials")

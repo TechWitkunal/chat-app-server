@@ -32,8 +32,8 @@ function filterMessages(obj, from, to) {
 exports.addMessage = async (message, from, to, messageType, fileUrl) => {
     try {
         // const { from, to, message, messageType, fileUrl } = req.body;
-        console.log(message, from, to, messageType, fileUrl)
-        let message2 = message, fileUrl2 = fileUrl;
+        // console.log(message, from, to, messageType, fileUrl)
+        let fileUrl2 = fileUrl;
 
         if (!isValidString(from) || !isValidString(to) || !isValidString(messageType)) {
             throw new ApiError(300, "all field is required");
@@ -47,24 +47,24 @@ exports.addMessage = async (message, from, to, messageType, fileUrl) => {
             throw new ApiError(300, "You can't send a message to yourself");
         }
 
-        console.log(from, to, message);
+        // console.log(from, to, message);
 
         if (messageType === "Text") {
             if (!isValidString(message)) { throw new ApiError(300, "Message is required"); }
             fileUrl2 = ""
         }
         else if (messageType === "Media") {
-            if (!isValidString(fileUrl)) { throw new ApiError(300, "file url (media url) is required"); } message2 = ""
+            if (!isValidString(fileUrl)) { throw new ApiError(300, "file url (media url) is required"); } 
         }
         else { throw new ApiError(300, "invalid file type not allowed"); }
 
-        console.log(message2, fileUrl2)
+        // console.log(message2, fileUrl2)
 
         const data = await Message.create({
             to, from, type: messageType,
-            text: message2, fileUrl: fileUrl2
+            text: message, fileUrl: fileUrl2
         });
-        console.log(data)
+        // console.log(data)
 
         if (!data) { throw new ApiError(500, "Internal Server Error. Try later"); }
 

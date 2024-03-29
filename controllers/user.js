@@ -13,7 +13,7 @@ function isValidString(str) {
 
 exports.getAllUsers = async (req, res) => {
     try {
-        console.log("users")
+        // console.log("users")
         const userDB = req.user;
 
         // removing extra fields in all users object
@@ -22,11 +22,11 @@ exports.getAllUsers = async (req, res) => {
         const users = allUsers.filter(user => user.userName !== userDB.userName);
 
         // return res.json({ success: true, statusCode: 200, message: "Successfully get all users", users: { ...users } })
-        return res.json( new ApiResponse ( 200, true, "Get all user successfully", { ...users }) )
+        return res.json(new ApiResponse(200, true, "Get all user successfully", { ...users }))
 
     } catch (error) {
         const errorMessage = error.message || "Internal Server error please try later";
-        return res.json({ success: false, statusCode: error.statusCode || 500 , message: errorMessage, error: undefined });
+        return res.json({ success: false, statusCode: error.statusCode || 500, message: errorMessage, error: undefined });
     }
 }
 
@@ -93,7 +93,7 @@ exports.getUserInfo = (req, res) => {
         const user = req.user;
 
         if (!user) { throw new ApiError(400, "Please logged in again") }
-        
+
         const updateUser = user._doc;
         updateUser.id = updateUser._id;
         updateUser._id = undefined;
@@ -104,10 +104,32 @@ exports.getUserInfo = (req, res) => {
         updateUser.updatedAt = undefined;
         updateUser.__v = undefined;
 
-        return res.json( new ApiResponse ( 200, true, "Get user successfully", { ...user._doc }) )
-        
+        return res.json(new ApiResponse(200, true, "Get user successfully", { ...user._doc }))
+
     } catch (error) {
         const errorMessage = error.message || "Internal Server error please try later";
-        return res.json({ success: false, statusCode: error.statusCode || 500 , message: errorMessage, error: undefined });
+        return res.json({ success: false, statusCode: error.statusCode || 500, message: errorMessage, error: undefined });
+    }
+}
+
+exports.updateUserAbout = async (req, res) => {
+    try {
+        const user = req.user;
+        const newAbout = req.body.newAbout;
+
+        if (!user) { throw new ApiError(400, "Please logged in again") }
+
+        if (!(newAbout.length > 5 && newAbout.length <= 30)) {
+            throw new ApiError(400, "User about should be in range of 5 to 30 character")
+        }
+
+
+        const updateUser = await User.findByIdAndUpdate(user._id, { about: newAbout })
+
+        return res.json(new ApiResponse(200, true, "User about updated successfully", { about: newAbout }))
+
+    } catch (error) {
+        const errorMessage = error.message || "Internal Server error please try later";
+        return res.json({ success: false, statusCode: error.statusCode || 500, message: errorMessage, error: undefined });
     }
 }

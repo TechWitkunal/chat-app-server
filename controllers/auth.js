@@ -40,7 +40,7 @@ const defaultChatWallpaper = "https://firebasestorage.googleapis.com/v0/b/online
 
 exports.register = async (req, res) => {
     try {
-        console.log("register")
+        // console.log("register")
         const { name, about, email, password, imageUrl } = req.body;
         // console.log(imageUrl);
 
@@ -88,16 +88,7 @@ exports.register = async (req, res) => {
             throw new ApiError(500, "here is some internal server error please try again later")
         }
 
-        const token = signToken(newUser._id)
-
-        res.cookie('token', token, {
-            httpOnly: true,
-            maxAge: 24 * 60 * 60 * 1000, // 1 day in milliseconds
-            secure: true, // Set to true if served over HTTPS
-            sameSite: 'None' // Set to 'None' for cross-origin requests
-        });
-        // return res.json( new ApiResponse ( 200, true, "Register successfully", { 
-        // userId: newUser._id, token }) )
+        const token = signToken(newUser._id);
 
         return res.json(
             new ApiResponse(200, true, "Yor are register Successfully",
@@ -122,7 +113,6 @@ exports.register = async (req, res) => {
 
 exports.login = async (req, res) => {
     try {
-        console.log(":LKJH login");
         const { email, password } = req.body;
         // console.log(req.body)
         // Validation
@@ -132,7 +122,7 @@ exports.login = async (req, res) => {
 
         // Check if user exists with the provided email
         // console.log(email);
-        console.log(await User.find({}))
+        // console.log(await User.find({}))
         const user = await User.findOne({ email: email });
         if (!user) {
             throw new ApiError(404, "Please provide correct credentials")
@@ -173,10 +163,18 @@ exports.login = async (req, res) => {
 
 exports.isUserOnline = async (req, res) => {
     try {
+        console.log("socket", req.socket, req.is)
         // console.log(req , "JHGFDSA<++++++")
-        if (!req.userName || !req.is) return;
+        if (!req.socket || isValidString(req.is)) return;
         // Find the user by userName
-        const user = await User.findOne({ userName: req.userName });
+        let user;
+        if (req.is === true) {
+            user = await User.findOne({ userName: req.userName });
+
+        } else {
+            user = await User.findOne({ socket_id: req.socket });
+        }
+        // console.log(user)
 
         // If user is not found, return appropriate response
         if (!user) {
@@ -188,10 +186,28 @@ exports.isUserOnline = async (req, res) => {
 
         // Save the updated user
         await user.save();
+        return user.userName;
+
+    } catch (error) {
+        console.error("Error updating user status:", error);
+        const errorMessage = error.message || "Internal Server error, please try later";
+        return res.status(error.statusCode || 500).json({ success: false, statusCode: error.statusCode || 500, message: errorMessage });
+    }
+};
+
+exports.getOnlineUsers = async (req, res) => {
+    try {
+        let user = await User.find({});
+
+        user = user.filter(user => user.isUserOnline === true).map(user => user.userName);
+        // console.log("usersss ->>>>>", user)
+
+        if (!user) {
+            throw new ApiError(401, "Please provide correct credentials");
+        }
 
         // Return success response
-        return res.json(
-            new ApiResponse(200, true, "Login Successfully",null));
+        return user
 
     } catch (error) {
         console.error("Error updating user status:", error);
@@ -202,7 +218,7 @@ exports.isUserOnline = async (req, res) => {
 
 exports.updateSocketId = async (req, res) => {
     try {
-        // console.log(req , "JHGFDSA<++++++")
+        console.log(req.userName, req.is , "JHGFDSA<++++++")
         if (!req.userName || !req.is) return;
         // Find the user by userName
         const user = await User.findOne({ userName: req.userName });
@@ -218,9 +234,8 @@ exports.updateSocketId = async (req, res) => {
         // Save the updated user
         await user.save();
 
-        // Return success response
-        return res.json(
-            new ApiResponse(200, true, "Login Successfully",null));
+        
+        return;
 
     } catch (error) {
         console.error("Error updating user status:", error);
@@ -239,7 +254,7 @@ exports.getUserNameBySocket = async (req, res) => {
 
         return user.userName;
         // return res.json(
-            // new ApiResponse(200, true, "Login Successfully", {"name": user.userName}));
+        // new ApiResponse(200, true, "Login Successfully", {"name": user.userName}));
 
     } catch (error) {
         console.error("Error updating user status:", error);

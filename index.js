@@ -16,8 +16,8 @@ const app = express();
 const port = process.env.PORT || 8001;
 
 app.use(cors({
-  origin: '*',
-  // origin: 'https://main--online-chat-app-0011.netlify.app',
+  // origin: '*',
+  origin: 'https://main--online-chat-app-0011.netlify.app',
   methods: 'GET,POST',
   credentials: true,
 }));

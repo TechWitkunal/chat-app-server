@@ -22,7 +22,30 @@ const MessageSchema = new mongoose.Schema({
     isSeen: {
         type: Boolean,
         default: false,
+    },
+
+    // to check is this a message which is send in group
+    isInGroup: {
+        type: Boolean,
+        default: false,
+    },
+
+    // Group id
+    groupId: {
+        type: mongoose.Schema.ObjectId,
+        ref: "Group",
+    },
+
+    membersInGroup: {
+       type: [String],
     }
+
+    // // store the user id who send message in the group if this is a group message
+    // sendBy: {
+    //     type: mongoose.Schema.ObjectId,
+    //     ref: "User",
+    //     required: false,
+    // }
 }, { timestamps: true });
 
 const Message = new mongoose.model(

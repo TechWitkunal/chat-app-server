@@ -9,29 +9,7 @@ var jwt = require('jsonwebtoken'); // for token authentication of users
 // const { ApiError } = require('../utils/ApiError');
 const ApiError = require('../utils/ApiError');
 const ApiResponse = require('../utils/ApiResponse');
-
-
-// this function will return you jwt token
-const signToken = (userId) => jwt.sign({ userId }, process.env.JWT_SECRET);
-
-// check email is vaild or not ( return true or false )
-function isValidEmail(email) {
-    try {
-        const emailRegex = /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
-        return emailRegex.test(email.toLowerCase());
-    } catch (error) {
-        return false;
-    }
-}
-
-// check field is not only contain empty string or not null
-function isValidString(str) {
-    try {
-        return str !== null && str.trim() !== '';
-    } catch (error) {
-        return false;
-    }
-}
+const { isValidString, isValidEmail, signToken } = require('../utils/main');
 
 // default chat wallpaper
 // const defaultChatWallpaper = "https://firebasestorage.googleapis.com/v0/b/online-chat-app-d822f.appspot.com/o/default%20images%2FScreenshot%202024-02-12%20164943_cleanup.png?alt=media&token=10e2f5ca-45a0-4d2d-b57b-c9737e1a40e4";
@@ -135,6 +113,7 @@ exports.login = async (req, res) => {
         }
 
         const token = signToken(user._id)
+        console.log(user._id, "<- id in login route")
 
         // If everything is fine, return success message or token
         res.cookie('token', token);

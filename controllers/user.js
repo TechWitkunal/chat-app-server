@@ -2,27 +2,35 @@ const Friend = require("../models/Friend");
 const User = require("../models/User")
 const ApiResponse = require("../utils/ApiResponse");
 const ApiError = require("../utils/ApiError");
-
-function isValidString(str) {
-    try {
-        return str !== null && str.trim() !== '';
-    } catch (error) {
-        return false;
-    }
-}
+const { isValidString } = require("../utils/main");
+const Group = require("../models/Group");
 
 exports.getAllUsers = async (req, res) => {
     try {
-        // console.log("users")
         const userDB = req.user;
 
         // removing extra fields in all users object
         const allUsers = await User.find({}).select("-password -achieveChat -pinChat -createdAt -updatedAt -avatar -__v -chatWallpaper")
 
-        const users = allUsers.filter(user => user.userName !== userDB.userName);
+        let users = allUsers.filter(user => user.userName !== userDB.userName);
+        // console.log(users, "-<< all users")
+        users = Object.values(users)
+        
+        const group = await Group.find({})
+        // console.log(group, "<- group")
+        let filteredGroup = group.filter(group => group.members.includes(userDB._id));
+        filteredGroup = Object.values(filteredGroup)
+        console.log(Array.isArray(users), "<-- before type")
+        console.log(Array.isArray(filteredGroup), "<-- before type")
+        console.log(typeof filteredGroup)
+        // console.log(typeof users, typeof filteredGroup, "-<<  users")
+        let allContact = users.concat(filteredGroup);
+        // let allContact = {...users, ...filteredGroup}
+        // console.log(allContact, "-<< all users")
+        
 
-        // return res.json({ success: true, statusCode: 200, message: "Successfully get all users", users: { ...users } })
-        return res.json(new ApiResponse(200, true, "Get all user successfully", { ...users }))
+        return res.json({ success: true, statusCode: 200, message: "Successfully get all users", data: { ...allContact } })
+        // return res.json(new ApiResponse(200, true, "Get all user successfully", { ...Object.values(filteredGroup) }))
 
     } catch (error) {
         const errorMessage = error.message || "Internal Server error please try later";

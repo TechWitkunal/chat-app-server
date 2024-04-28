@@ -4,7 +4,7 @@ const User = require("../models/User");
 
 function isValidString(str) {
     try {
-        return str !== null && str.trim() !== '';
+        return str !== null && typeof str === 'string' && str.trim() !== '';
     } catch (error) {
         return false;
     }
@@ -12,38 +12,40 @@ function isValidString(str) {
 
 exports.isAuthenticate = async (req, res, next) => {
     try {
+        const authHeader = req.headers?.authorization;
+        const cookieToken = req.cookies?.token;
+
+        if (!authHeader && !cookieToken) {
+            return res.status(401).json({ success: false, message: "Authentication required: No token provided." });
+        }
+
         let token;
-        if (req.headers?.authorization == undefined && req.cookies?.token === undefined) {
-            return res.json({ statusCode: 404, success: false, message: "Please login..." });
+        if (authHeader?.startsWith("Bearer ")) {
+            token = authHeader.substring(7, authHeader.length); // Skip 'Bearer '
+        } else if (cookieToken) {
+            token = cookieToken;
         }
 
-        let headerTokenSplit = req.headers?.authorization.split(" ")[0];
-
-        if (req.headers?.authorization && headerTokenSplit === "Bearer") { 
-            token = req.headers.authorization.split(" ")[1]; 
-        } else if (req.cookies.token) { 
-            token = req.cookies.token; 
+        if (!isValidString(token)) {
+            return res.status(401).json({ success: false, message: "Authentication failed: Invalid token format." });
         }
 
-        if (!isValidString(token)) { 
-            return res.json({ statusCode: 404, success: false, message: "You are not logged in! Please log in to get access." }); 
-        }
-
-        let verify;
+        let decoded;
         try {
-            verify = jwt.verify(token, process.env.JWT_SECRET);
+            decoded = jwt.verify(token, process.env.JWT_SECRET);
         } catch (error) {
-            // Handle invalid token error
-            return res.json({ statusCode: 404, success: false, message: "Invalid token" });
+            return res.status(401).json({ success: false, message: "Authentication failed: Invalid token." });
         }
 
-        // 3) Check if user still exists
-        const this_user = await User.findById(verify.userId);
+        console.log(decoded.userId, "<- decoded id in auth")
+        const user = await User.findById(decoded.userId);
+        if (!user) {
+            return res.status(401).json({ success: false, message: "Authentication failed: User no longer exists." });
+        }
 
-        // GRANT ACCESS TO PROTECTED ROUTE
-        req.user = this_user;
-        next(); // Call next to proceed to the next middleware
+        req.user = user;
+        next();
     } catch (error) {
-        return res.json({ success: false, statusCode: 500, message: "Internal Server error please try later", error: error });
+        return res.status(500).json({ success: false, message: "Internal Server Error", error });
     }
 };

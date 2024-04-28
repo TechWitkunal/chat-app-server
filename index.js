@@ -7,7 +7,8 @@ const cookieParser = require('cookie-parser');
 const http = require("http");
 const socketIO = require("socket.io");
 const { isUserOnline, updateSocketId, getUserNameBySocket, getOnlineUsers } = require('./controllers/auth');
-const { addMessage } = require('./controllers/message');
+const { addMessage, addGroupMessage } = require('./controllers/message');
+const Message = require('./models/Message');
 
 connectToMongoose();
 
@@ -15,8 +16,8 @@ const app = express();
 const port = process.env.PORT || 8001;
 
 app.use(cors({
-  // origin: '*',
-  origin: 'https://main--online-chat-app-0011.netlify.app',
+  origin: '*',
+  // origin: 'https://main--online-chat-app-0011.netlify.app',
   methods: 'GET,POST',
   credentials: true,
 }));
@@ -39,7 +40,6 @@ io.on("connection", (socket) => {
   // console.log("new connection", socket.id);
 
   socket.on("user-connect", async ({ userName }) => {
-    console.log("->> connect socket id", userName, socket.id)
     try { await updateSocketId({ userName, is: socket.id }); } catch (error) { console.log("catch error line 52 of index.js") }
     try { await isUserOnline({ socket: socket.id, userName, is: true }); } catch (error) { console.log("catch error line 51 of index.js") }
     socket.broadcast.emit("user-online", { userName });
@@ -91,6 +91,37 @@ io.on("connection", (socket) => {
   //   socket.broadcast.emit("userRegisterReceive", {user})
   //   console.log("NEW USER", user);
   // })
+
+  // =========== FOR GROUPS ================== //
+  socket.on("addGroupTextMessage", async ({inputValue, from, filetype, groupId }) => {
+    const msg = await addGroupMessage(inputValue, from, filetype, "", groupId)
+    // const msg = await addMessage(inputValue, from, to, fileType, "")
+    // message, from, to, messageType, fileUrl
+    let userName;
+    socket.emit("updateGroupTextMessage", { msg })
+    try { userName = await getUserNameBySocket({ "id": from }); } catch (error) { console.log("catch error line 61 of index.js") }
+    console.log(userName, "<<--------username")
+    // try { toUserName = await getUserNameBySocket({ "id": to }); } catch (error) { console.log("catch error line 61 of index.js") }
+    socket.broadcast.emit("GroupTextMessageReceive", { userName, groupId, msg });
+  });
+
+//   async function deleteGroupMessage() {
+//     try {
+//         const deletedMessage = await Message.deleteMany({ "isInGroup": true });
+
+//         if (deletedMessage) {
+//             console.log('Deleted message:', deletedMessage);
+//         } else {
+//             console.log('No message found that meets the criteria.');
+//         }
+//     } catch (error) {
+//         console.error('Error deleting message:', error);
+//     }
+// }
+
+// deleteGroupMessage();
+
+
 
   socket.on("disconnect", async () => {
     let name;

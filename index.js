@@ -15,28 +15,28 @@ connectToMongoose();
 const app = express();
 const port = process.env.PORT || 8001;
 
-// app.use(cors({
-//   origin: '*',
-//   // origin: 'https://main--online-chat-app-0011.netlify.app',
-//   methods: 'GET,POST',
-//   credentials: true,
-// }));
-
-const allowedOrigins = ['https://main--online-chat-app-0011.netlify.app', 'https://main--online-chat-app-0012.netlify.app'];
-
 app.use(cors({
-  origin: function (origin, callback) {
-    // Allow requests with no origin (like mobile apps or curl requests)
-    if (!origin) return callback(null, true);
-    if (allowedOrigins.indexOf(origin) !== -1) {
-      callback(null, true);
-    } else {
-      callback(new Error('Not allowed by CORS'));
-    }
-  },
+  origin: '*',
+  // origin: 'https://main--online-chat-app-0011.netlify.app',
   methods: 'GET,POST',
   credentials: true,
 }));
+
+// const allowedOrigins = ['https://main--online-chat-app-0011.netlify.app', 'https://main--online-chat-app-0012.netlify.app'];
+
+// app.use(cors({
+//   origin: function (origin, callback) {
+//     // Allow requests with no origin (like mobile apps or curl requests)
+//     if (!origin) return callback(null, true);
+//     if (allowedOrigins.indexOf(origin) !== -1) {
+//       callback(null, true);
+//     } else {
+//       callback(new Error('Not allowed by CORS'));
+//     }
+//   },
+//   methods: 'GET,POST',
+//   credentials: true,
+// }));
 
 app.use(express.json()); // Middleware to parse JSON request bodies
 app.use(cookieParser());

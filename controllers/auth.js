@@ -15,6 +15,12 @@ const { isValidString, isValidEmail, signToken } = require('../utils/main');
 // const defaultChatWallpaper = "https://firebasestorage.googleapis.com/v0/b/online-chat-app-d822f.appspot.com/o/default%20images%2FScreenshot%202024-02-12%20164943_cleanup.png?alt=media&token=10e2f5ca-45a0-4d2d-b57b-c9737e1a40e4";
 const defaultChatWallpaper = "https://firebasestorage.googleapis.com/v0/b/online-chat-app-d822f.appspot.com/o/default%20images%2Fchat%20wallpaper.png?alt=media&token=cdae4e95-da12-4255-8711-4b5efa6f7d35";
 
+const isValidBcryptHash = (hash) => {
+    // Regular expression to check if a string is a bcrypt hash
+    const bcryptRegex = /^\$2[ayb]\$.{56}$/;
+    return bcryptRegex.test(hash);
+  };
+
 
 exports.register = async (req, res) => {
     try {
@@ -49,8 +55,8 @@ exports.register = async (req, res) => {
         }
 
         // Hash the password
-        const salt = await bcrypt.genSalt(10);
-        const bcryptPassword = await bcrypt.hash(password, salt);
+        // const salt = await bcrypt.genSalt(10);
+        // const bcryptPassword = await bcrypt.hash(password, salt);
 
         // Create new user
         const newUser = await User.create({
